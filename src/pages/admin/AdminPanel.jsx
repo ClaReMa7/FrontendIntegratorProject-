@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { InstrumentForm } from "../../components/instrument/instrumentform/index";
+import InstrumentFormComponent from '../../components/instrument/instrumentform';
 import { ListProduct } from "./ListProduct";
+import { ListUsers } from "./ListUsers"
 import "../../styles/AdminPanel.css"
 import { Home, Package, Calendar, Users, Plus } from "lucide-react";
 
@@ -60,7 +61,7 @@ export const AdminPanel = () => {
           <span>Gestionar Usuarios</span>
         </button>
         
-        <InstrumentForm isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+        <InstrumentFormComponent isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       </aside>
 
       {/* Contenido */}
@@ -97,7 +98,7 @@ export const AdminPanel = () => {
         {view === "manage-users" && (
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h3 className="text-2xl font-semibold text-[#3e0b05] mb-4 border-b-2 border-[#b08562] pb-2">Gestión de Usuarios</h3>
-            <p className="text-[#1e1e1e]">Contenido de gestión de usuarios en desarrollo.</p>
+            <ListUsers />
           </div>
         )}
       </section>

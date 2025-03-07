@@ -16,10 +16,23 @@ function shuffleArray(array) {
 function Home() {
   const [randomProducts, setRandomProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1); // Página actual (UI base 1)
-  const [totalPages, setTotalPages] = useState(1); // Total de páginas
-  const [loading, setLoading] = useState(false); // Estado de carga
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); 
+  const [totalPages, setTotalPages] = useState(1); 
+  const [loading, setLoading] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  const categories = [
+    { id: 1, name: "Cuerda" },
+    { id: 2, name: "Percusión" },
+    { id: 3, name: "Viento" },
+    { id: 4, name: "Electrónicos" },
+    { id: 5, name: "Otros" }
+  ];
 
   const fetchProducts = async (page) => {
     try {
@@ -28,7 +41,7 @@ function Home() {
       const apiPage = page - 1;
       
       const response = await fetch(
-        `https://clavecompas-production.up.railway.app/clavecompas/products?page=${apiPage}&pageSize=10`
+        `${API_URL}/products?page=${apiPage}&pageSize=10`
       );
       
       if (!response.ok) {
@@ -59,21 +72,44 @@ function Home() {
   }, [currentPage]); // Se ejecuta cuando cambia la página
 
   useEffect(() => {
-    if (allProducts.length > 0) {
-      const shuffled = shuffleArray([...allProducts]);
+    let filtered = allProducts;
+
+    if (selectedCategory) {
+      filtered = filtered.filter(product => product.idCategory === selectedCategory);
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter(product =>
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredProducts(filtered);
+  }, [selectedCategory, searchQuery, allProducts]);
+
+  useEffect(() => {
+    if (filteredProducts.length > 0) {
+      const shuffled = shuffleArray([...filteredProducts]);
       setRandomProducts(shuffled.slice(0, 10));
     }
-  }, [allProducts]);
+  }, [filteredProducts]);
+
+  const handleCategoryClick = (categoryId) => {
+    setSelectedCategory(categoryId);
+  };
+
+  const handleResetFilters = () => {
+    setSelectedCategory(null);
+    setSearchQuery("");
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
-    const query = e.target.elements.search.value;
-    console.log("Buscar:", query);
-    // Aquí podrías implementar la lógica de búsqueda real
+    setSearchQuery(e.target.elements.search.value);
   };
 
   const handleViewDetail = (productId) => {
-    // Por ejemplo, navega a la ruta completa de galería
     navigate(`/product/${productId}`);
   };
 
@@ -100,16 +136,26 @@ function Home() {
       </section>
 
       {/* Sección de Categorías */}
-      <section className="flex flex-wrap justify-center gap-4 p-6 bg-[#F9F7F4] outline outline-1 outline-[#b08562] ">
-        {["Cuerda", "Percusión", "Viento", "Audio Profesional", "Instrumentos Electrónicos"].map((category) => (
-          <button 
-            key={category} 
-            className="text-[#b08562] px-4 py-2 rounded-lg hover:bg-[#c6bcb049]"
+      <section className="flex flex-wrap justify-center gap-4 p-6 bg-[#F9F7F4] outline outline-1 outline-[#b08562]">
+      <button
+          onClick={handleResetFilters}
+          className={`px-4 py-2 rounded-lg ${
+            selectedCategory === null ? "bg-[#b08562] text-white" : "text-[#b08562] hover:bg-[#c6bcb049]"
+          }`}
+        >
+          Todos
+        </button>
+        {categories.map((category) => (
+          <button
+            key={category.id}
+            onClick={() => handleCategoryClick(category.id)}
+            className={`text-[#b08562] px-4 py-2 rounded-lg hover:bg-[#c6bcb049] ${
+              selectedCategory === category.id ? "bg-[#b08562] text-white" : ""
+            }`}
           >
-            {category}
+            {category.name}
           </button>
         ))}
-        
       </section>
       
       {/* Indicador de carga */}

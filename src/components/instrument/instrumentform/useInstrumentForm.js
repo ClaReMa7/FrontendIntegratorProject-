@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useInstrumentContext } from "../../../context";
 import instrumentService from "../../../services/instrumentService";
-import cloudinaryService from "../../../services/images/cloudinaryService";
 import { successToast, errorToast } from "../../../utils/toastNotifications";
 
 /**
@@ -34,8 +33,10 @@ export const useInstrumentForm = ({ isOpen, onClose, instrumentToEdit }) => {
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
   const [existingImages, setExistingImages] = useState([]);
+  const [imageData, setImageData] = useState([]); // Nuevo estado para datos completos de imágenes
+  const [initialLoad, setInitialLoad] = useState(true); // Flag para controlar la carga inicial
 
-  // Load categories on component mount
+  // Load categories on component mount - solo una vez
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -53,11 +54,11 @@ export const useInstrumentForm = ({ isOpen, onClose, instrumentToEdit }) => {
     };
 
     fetchCategories();
-  }, []);
+  }, []); // Sin dependencias, se ejecuta solo al montar
 
-  // Load instrument data when in edit mode
+  // Load instrument data when in edit mode - solo cuando cambia instrumentToEdit o isEditMode
   useEffect(() => {
-    if (isEditMode && instrumentToEdit) {
+    if (isEditMode && instrumentToEdit && initialLoad) {
       setFormData({
         id: instrumentToEdit.id || instrumentToEdit.idProduct,
         name: instrumentToEdit.name || "",
@@ -75,9 +76,21 @@ export const useInstrumentForm = ({ isOpen, onClose, instrumentToEdit }) => {
       if (instrumentToEdit.imageUrls && instrumentToEdit.imageUrls.length > 0) {
         setExistingImages(instrumentToEdit.imageUrls);
         setImagePreviews(instrumentToEdit.imageUrls);
+        // Inicializar imageData con las URLs existentes
+        setImageData(instrumentToEdit.imageUrls.map(url => ({ url })));
       }
+      
+      // Marcar como ya cargado para evitar actualizaciones repetidas
+      setInitialLoad(false);
     }
-  }, [isEditMode, instrumentToEdit]);
+  }, [isEditMode, instrumentToEdit, initialLoad]);
+
+  // Reset initialLoad cuando cambia isOpen
+  useEffect(() => {
+    if (isOpen) {
+      setInitialLoad(true);
+    }
+  }, [isOpen]);
 
   // Cleanup on modal close
   useEffect(() => {
@@ -88,10 +101,11 @@ export const useInstrumentForm = ({ isOpen, onClose, instrumentToEdit }) => {
           URL.revokeObjectURL(url);
         }
       });
-    } else if (!isEditMode) {
+    } else if (!isEditMode && initialLoad) {
       resetForm();
+      setInitialLoad(false);
     }
-  }, [isOpen, isEditMode, imagePreviews]);
+  }, [isOpen, isEditMode, imagePreviews, initialLoad]);
 
   // Form input handlers
   const handleInputChange = (e) => {
@@ -115,45 +129,39 @@ export const useInstrumentForm = ({ isOpen, onClose, instrumentToEdit }) => {
     }));
   };
 
-  // Image handling
-  const handleImageUpload = (e) => {
+  // La función removeImage memoizada para evitar recreaciones en cada renderizado
+  const removeImage = useCallback(async (index) => {
     if (isEditMode) return;
 
-    const files = Array.from(e.target.files || []);
-    const totalImages = imageFiles.length + existingImages.length;
-
-    if (files.length && totalImages < 5) {
-      const newFiles = files.slice(0, 5 - totalImages);
-      const newPreviews = newFiles.map((file) => URL.createObjectURL(file));
-
-      setImageFiles((prev) => [...prev, ...newFiles]);
-      setImagePreviews((prev) => [...prev, ...newPreviews]);
-    }
-  };
-
-  const removeImage = (index) => {
-    if (isEditMode) return;
-
-    const isExistingImage = index < existingImages.length;
-    
-    if (isExistingImage) {
-      const imageUrl = existingImages[index];
-      setExistingImages((prev) => prev.filter((_, i) => i !== index));
-      setImagePreviews((prev) => prev.filter((url) => url !== imageUrl));
-    } else {
-      const newIndex = index - existingImages.length;
+    try {
+      // Actualizar la interfaz como antes
+      const isExistingImage = index < existingImages.length;
       
-      if (imagePreviews[index] && imagePreviews[index].startsWith("blob:")) {
-        URL.revokeObjectURL(imagePreviews[index]);
+      if (isExistingImage) {
+        const imageUrl = existingImages[index];
+        setExistingImages(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => prev.filter(url => url !== imageUrl));
+      } else {
+        const newIndex = index - existingImages.length;
+        
+        if (imagePreviews[index] && imagePreviews[index].startsWith("blob:")) {
+          URL.revokeObjectURL(imagePreviews[index]);
+        }
+
+        setImageFiles(prev => prev.filter((_, i) => i !== newIndex));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
       }
 
-      setImageFiles((prev) => prev.filter((_, i) => i !== newIndex));
-      setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+      // Actualizar imageData
+      setImageData(prev => prev.filter((_, i) => i !== index));
+    } catch (error) {
+      console.error("Error al eliminar imagen:", error);
+      errorToast("Error al eliminar la imagen");
     }
-  };
+  }, [isEditMode, existingImages, imagePreviews]);
 
-  // Form reset
-  const resetForm = () => {
+  // Form reset - memoizado
+  const resetForm = useCallback(() => {
     imagePreviews.forEach((url) => {
       if (url.startsWith("blob:")) {
         URL.revokeObjectURL(url);
@@ -176,15 +184,16 @@ export const useInstrumentForm = ({ isOpen, onClose, instrumentToEdit }) => {
     setImageFiles([]);
     setImagePreviews([]);
     setExistingImages([]);
-  };
+    setImageData([]);
+  }, [imagePreviews]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     resetForm();
     onClose();
-  };
+  }, [resetForm, onClose]);
 
-  // Form submission
-  const handleSubmit = async (e) => {
+  // Form submission - memoizado
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
 
     try {
@@ -208,16 +217,23 @@ export const useInstrumentForm = ({ isOpen, onClose, instrumentToEdit }) => {
         
         successToast("Categoría del instrumento actualizada con éxito.");
       } else {
-        // Verify images in creation mode
-        if (imageFiles.length === 0) {
+        // Verificar imágenes - ahora usamos imageData en lugar de imageFiles
+        if (imageData.length === 0 && imageFiles.length === 0) {
           errorToast("Debes agregar al menos una imagen.");
           return;
         }
 
-        // Upload images to Cloudinary
-        const imageUrls = await Promise.all(
-          imageFiles.map((file) => cloudinaryService.uploadImage(file))
-        );
+        // Obtener URLs de imágenes (según método preferido)
+        let imageUrls;
+        
+        if (imageData.length > 0) {
+          // Si tenemos imageData, extraer las URLs
+          imageUrls = imageData.map(img => img.url);
+        } else {
+          // Si no tenemos imageData pero sí imageFiles, usar el método antiguo
+          errorToast("Las imágenes aún no se han subido correctamente.");
+          return;
+        }
 
         // Create instrument with image URLs
         const newInstrument = await instrumentService.createInstrument({
@@ -246,18 +262,21 @@ export const useInstrumentForm = ({ isOpen, onClose, instrumentToEdit }) => {
         errorToast(error.message || `Error al ${isEditMode ? 'actualizar la categoría' : 'crear'} el instrumento.`);
       }
     }
-  };
+  }, [formData, isEditMode, imageData, imageFiles, addInstrument, updateInstrument, handleClose]);
 
   return {
     formData,
     categories,
     imagePreviews,
+    imageData,
     isEditMode,
     handleInputChange,
     handleSubmit,
-    handleImageUpload,
     removeImage,
     resetForm,
-    handleClose
+    handleClose,
+    setImagePreviews,
+    setImageData,
+    setImageFiles
   };
 };

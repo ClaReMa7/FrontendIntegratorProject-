@@ -1,13 +1,78 @@
+import { useState } from "react";
 import PropTypes from "prop-types";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
+import cloudinaryService from "../../../services/images/cloudinaryService";
 
 /**
  * ImageUploader component - Handles image preview and uploading UI
  * 
  * Single Responsibility: Manages image upload interface and previews
  */
-const ImageUploader = ({ isEditMode, imagePreviews, removeImage, handleImageUpload }) => {
-  // In edit mode, just show existing images
+const ImageUploader = ({ 
+  isEditMode, 
+  imagePreviews, 
+  removeImage, 
+  setImagePreviews, 
+  setImageData, 
+  setImageFiles = null
+}) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Manejador mejorado para subir imágenes usando el backend
+  const handleImageUpload = async (e) => {
+    if (isEditMode) return;
+
+    const files = Array.from(e.target.files || []);
+    const totalImages = imagePreviews.length;
+
+    // Validar número máximo de imágenes
+    if (files.length + totalImages > 5) {
+      alert('Máximo 5 imágenes permitidas');
+      return;
+    }
+
+    // Validar tipos de archivo
+    const validFiles = files.filter(file => file.type.startsWith('image/'));
+    if (validFiles.length !== files.length) {
+      alert('Solo se permiten archivos de imagen');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      // Para compatibilidad con el código anterior
+      if (setImageFiles) {
+        setImageFiles(prev => [...prev, ...validFiles]);
+      }
+
+      for (const file of validFiles) {
+        // Subir a través del backend de Spring Boot
+        const response = await cloudinaryService.uploadImageViaBackend(file);
+        
+        // Actualizar previsualizaciones
+        setImagePreviews(prev => [...prev, response.secureUrl]);
+        
+        // Si tenemos setImageData, almacenar datos completos de la imagen
+        if (setImageData) {
+          setImageData(prev => [...prev, {
+            url: response.secureUrl,
+            publicId: response.publicId,
+            width: response.width,
+            height: response.height,
+            format: response.format
+          }]);
+        }
+      }
+    } catch (error) {
+      console.error('Error en la carga de imágenes:', error);
+      alert('Error al subir imagen');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // En modo edición, solo mostrar las imágenes existentes
   if (isEditMode) {
     return (
       <div>
@@ -31,7 +96,7 @@ const ImageUploader = ({ isEditMode, imagePreviews, removeImage, handleImageUplo
     );
   }
 
-  // In create mode, allow image uploading
+  // En modo creación, permitir carga de imágenes
   return (
     <div>
       <label className="block text-[#3e0b05] font-medium mb-2">
@@ -55,11 +120,21 @@ const ImageUploader = ({ isEditMode, imagePreviews, removeImage, handleImageUplo
               </button>
             </div>
           ))}
+          
           {imagePreviews.length < 5 && (
-            <label className="aspect-square flex items-center justify-center border-2 border-[#757575] border-dashed rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className={`aspect-square flex items-center justify-center border-2 border-[#757575] border-dashed rounded-lg cursor-pointer hover:bg-gray-50 ${isUploading ? 'cursor-not-allowed opacity-50' : ''}`}>
               <div className="flex flex-col items-center justify-center">
-                <Plus className="text-[#b08562] mb-1" size={24} />
-                <span className="text-xs text-[#757575]">Añadir</span>
+                {isUploading ? (
+                  <>
+                    <Loader2 className="text-[#b08562] mb-1 animate-spin" size={24} />
+                    <span className="text-xs text-[#757575]">Subiendo...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="text-[#b08562] mb-1" size={24} />
+                    <span className="text-xs text-[#757575]">Añadir</span>
+                  </>
+                )}
               </div>
               <input
                 type="file"
@@ -67,6 +142,7 @@ const ImageUploader = ({ isEditMode, imagePreviews, removeImage, handleImageUplo
                 accept="image/*"
                 multiple
                 onChange={handleImageUpload}
+                disabled={isUploading}
               />
             </label>
           )}
@@ -80,7 +156,9 @@ ImageUploader.propTypes = {
   isEditMode: PropTypes.bool.isRequired,
   imagePreviews: PropTypes.array.isRequired,
   removeImage: PropTypes.func.isRequired,
-  handleImageUpload: PropTypes.func.isRequired,
+  setImagePreviews: PropTypes.func.isRequired,
+  setImageData: PropTypes.func,
+  setImageFiles: PropTypes.func
 };
 
 export default ImageUploader;

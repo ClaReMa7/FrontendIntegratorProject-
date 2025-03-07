@@ -5,7 +5,7 @@ import "../../styles/ListProduct.css";
 import { Trash2, Edit,  Eye, ShoppingCart } from "lucide-react";
 import { successToast, errorToast } from "../../utils/toastNotifications";
 import ConfirmationModal from "../../components/instrument/ConfirmationModal";
-import { InstrumentForm } from "../../components/instrument/instrumentform/index"; // Importamos el formulario
+import InstrumentFormComponent from '../../components/instrument/instrumentform';
 
 export const ListProduct = () => {
     const [products, setAllProducts] = useState([]); // Almacena los productos
@@ -185,7 +185,7 @@ export const ListProduct = () => {
             />
             
             {/* Modal para editar instrumentos */}
-            <InstrumentForm
+            <InstrumentFormComponent
                 isOpen={isEditModalOpen}
                 onClose={handleCloseEditModal}
                 instrumentToEdit={selectedInstrument}

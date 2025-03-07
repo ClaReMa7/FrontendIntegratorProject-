@@ -6,23 +6,23 @@ import ImageUploader from "./ImageUploader";
 import "../../../styles/Modal.css";
 
 /**
- * InstrumentForm component - Handles creation and editing of instruments
- * 
- * Single Responsibility: Manages the overall form UI structure and orchestrates
- * the form submission process
+ * Componente principal del formulario de instrumentos
  */
-export const InstrumentForm = ({ isOpen, onClose, instrumentToEdit = null }) => {
+function InstrumentFormComponent({ isOpen, onClose, instrumentToEdit = null }) {
   const {
     formData,
     categories,
     imagePreviews,
+    imageData,
     isEditMode,
     handleInputChange,
     handleSubmit,
-    handleImageUpload,
     removeImage,
     resetForm,
-    handleClose
+    handleClose,
+    setImagePreviews,
+    setImageData,
+    setImageFiles
   } = useInstrumentForm({ isOpen, onClose, instrumentToEdit });
 
   if (!isOpen) return null;
@@ -57,7 +57,9 @@ export const InstrumentForm = ({ isOpen, onClose, instrumentToEdit = null }) => 
             isEditMode={isEditMode}
             imagePreviews={imagePreviews}
             removeImage={removeImage}
-            handleImageUpload={handleImageUpload}
+            setImagePreviews={setImagePreviews}
+            setImageData={setImageData}
+            setImageFiles={setImageFiles}
           />
 
           <div className="flex justify-center space-x-4">
@@ -79,10 +81,13 @@ export const InstrumentForm = ({ isOpen, onClose, instrumentToEdit = null }) => 
       </div>
     </div>
   );
-};
+}
 
-InstrumentForm.propTypes = {
+InstrumentFormComponent.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   instrumentToEdit: PropTypes.object,
 };
+
+// Exportación predeterminada clara y simple
+export default InstrumentFormComponent;

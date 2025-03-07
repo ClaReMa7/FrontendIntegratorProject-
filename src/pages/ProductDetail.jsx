@@ -3,8 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ProductDetail.css";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import  BackButton from "/img/back-button.png"
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -15,11 +14,13 @@ const ProductDetail = () => {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  const BACKEND_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(
-          `${API_URL}/products/${id}`
+          `${BACKEND_URL}/products/${id}`
         );
         setProduct(response.data.response);
       } catch (error) {
@@ -84,7 +85,7 @@ const ProductDetail = () => {
           className="text-3xl hover:text-gray-700"
         >
           <img
-            src="../public/img/back-button.png"
+            src={BackButton}
             alt="Volver"
             className="w-8 h-8"
           />
