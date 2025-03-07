@@ -3,7 +3,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Header from "./components/common/Header"; // Nuevo Header
 import Home from "./pages/Home"; // Nueva página Home
 import Footer from "./components/common/Footer"; // Nuevo Footer
-import RegisterForm from "./components/user/signupform/RegisterForm";
+import RegisterForm from "./components/user/signupform/RegisterForm.jsx";
 
 import { AdminPanel } from "./pages/admin/AdminPanel";
 import Profile from "./pages/Profile"; // Nueva página Profile
