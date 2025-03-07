@@ -4,6 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "./ProductDetail.css";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,7 +19,7 @@ const ProductDetail = () => {
     const fetchProduct = async () => {
       try {
         const response = await axios.get(
-          `https://clavecompas-production.up.railway.app/clavecompas/products/${id}`
+          `${API_URL}/products/${id}`
         );
         setProduct(response.data.response);
       } catch (error) {
