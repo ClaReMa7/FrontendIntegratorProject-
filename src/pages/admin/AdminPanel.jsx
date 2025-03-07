@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { InstrumentForm } from "../../components/instrument/InstrumentForm";
+import { InstrumentForm } from "../../components/instrument/instrumentform/index";
 import { ListProduct } from "./ListProduct";
 import "../../styles/AdminPanel.css"
 import { Home, Package, Calendar, Users, Plus } from "lucide-react";

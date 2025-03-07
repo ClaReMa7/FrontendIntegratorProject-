@@ -5,7 +5,7 @@ import "../../styles/ListProduct.css";
 import { Trash2, Edit,  Eye, ShoppingCart } from "lucide-react";
 import { successToast, errorToast } from "../../utils/toastNotifications";
 import ConfirmationModal from "../../components/instrument/ConfirmationModal";
-import { InstrumentForm } from "../../components/instrument/InstrumentForm"; // Importamos el formulario
+import { InstrumentForm } from "../../components/instrument/instrumentform/index"; // Importamos el formulario
 
 export const ListProduct = () => {
     const [products, setAllProducts] = useState([]); // Almacena los productos
