@@ -1,0 +1,35 @@
+
+.custom-button {
+    border: none !important;
+    border-radius: 5px !important;
+    transition: all 0.3s ease !important;
+    transform: scale(1) !important;
+    font-family: "Alata", sans-serif !important;
+    padding: 10px !important;
+    margin-left: 10px;
+}
+
+.custom-button:hover {
+    transform: scale(1.05) !important;
+} 
+
+/*.custom-button:active,
+.custom-button:active:focus-visible {
+    background-color: #a83221;
+    color: #e0cfbc;
+    outline: none;
+} */
+
+/* Botón para volver arriba */
+/* .btn-subir {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-size: 14px;
+    z-index: 999;
+    color: #f1eae7;
+} */
+
+

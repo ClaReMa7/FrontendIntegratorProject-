@@ -1,0 +1,47 @@
+/* Estilos para la lista de productos */
+
+/* Animación para las filas de la tabla */
+tbody tr {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  tbody tr:hover {
+    transform: translateX(5px);
+  }
+
+/* Estilos para los botones de acción */
+button {
+    transition: all 0.2s ease;
+  }
+  
+  button:hover {
+    transform: scale(1.05);
+  }
+  
+  button:active {
+    transform: scale(0.95);
+  }
+  
+
+/* Estilos generales a todos los elementos de la paginación */
+.pagination .page-item .page-link {
+    background-color: transparent !important;
+    color: #b08562 !important;
+    border: none !important;
+    font-weight: bold !important;
+}
+
+/* Cambia el fondo cuando se pase el cursor */
+.pagination .page-item .page-link:hover {
+    background-color: #1e1e1e !important;
+    color: #d9c6b0 !important;
+    border-radius: 5px !important;
+}
+
+/* Personaliza el elemento activo */
+.pagination .page-item.active .page-link {
+    background-color: #730f06 !important;
+    color: #d9c6b0 !important;
+    border-radius: 5px !important;
+}
+

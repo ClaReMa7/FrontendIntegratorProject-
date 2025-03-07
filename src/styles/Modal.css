@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.select-category {
+    @apply w-full px-4 py-2 border border-[#730f06] 
+    text-[#b08562] rounded-lg focus:outline-none focus:border-[#b08562] bg-[#f1eae7]
+}
+
+ 
+
+
+
+
+
+
+
+
+ 
