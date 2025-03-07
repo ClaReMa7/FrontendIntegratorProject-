@@ -12,7 +12,7 @@ import { RootProvider } from "./context/index.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-     <RootProvider>
+    <RootProvider>
       <App />
     </RootProvider>
   </React.StrictMode>
